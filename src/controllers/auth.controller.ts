@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
+import Joi from 'joi';
 import { createUserSchema, loginSchema } from '../validators/auth.validator';
 import { CreateUserDto, LoginDto } from '../types/user.type';
 import { IAuthService } from '../interfaces/auth-service.interface';
@@ -12,13 +13,15 @@ export class AuthController implements IAuthController {
 
   public createUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { error, value } = createUserSchema.validate(req.body);
+      const validationResult = createUserSchema.validate(
+        req.body
+      ) as Joi.ValidationResult<CreateUserDto>;
 
-      if (error) {
+      if (validationResult.error) {
         res.status(400).json({
           success: false,
           error: 'Validation failed',
-          details: error.details.map(detail => detail.message),
+          details: validationResult.error.details.map(detail => detail.message),
           meta: {
             timestamp: new Date().toISOString(),
             requestId: req.headers['x-request-id'] || 'unknown',
@@ -28,7 +31,7 @@ export class AuthController implements IAuthController {
         return;
       }
 
-      const createUserDto: CreateUserDto = value;
+      const createUserDto: CreateUserDto = validationResult.value;
       const result = await this.authService.createUser(createUserDto);
 
       res.status(201).json({
@@ -57,13 +60,13 @@ export class AuthController implements IAuthController {
 
   public loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { error, value } = loginSchema.validate(req.body);
+      const validationResult = loginSchema.validate(req.body) as Joi.ValidationResult<LoginDto>;
 
-      if (error) {
+      if (validationResult.error) {
         res.status(400).json({
           success: false,
           error: 'Validation failed',
-          details: error.details.map(detail => detail.message),
+          details: validationResult.error.details.map(detail => detail.message),
           meta: {
             timestamp: new Date().toISOString(),
             requestId: req.headers['x-request-id'] || 'unknown',
@@ -73,7 +76,7 @@ export class AuthController implements IAuthController {
         return;
       }
 
-      const loginDto: LoginDto = value;
+      const loginDto: LoginDto = validationResult.value;
       const result = await this.authService.loginUser(loginDto);
 
       res.status(200).json({
