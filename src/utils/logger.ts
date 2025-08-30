@@ -104,6 +104,10 @@ export interface LogContext {
   statusCode?: number;
   responseTime?: number;
   error?: Error;
+  nodeEnv?: string;
+  corsEnabled?: boolean;
+  helmetEnabled?: boolean;
+  promise?: Promise<unknown>;
 }
 
 class Logger {

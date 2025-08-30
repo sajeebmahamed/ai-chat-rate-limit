@@ -12,12 +12,26 @@ import { IAuthUtil } from '../interfaces/auth-util.interface';
 import { IAuthMiddleware } from '../interfaces/auth-middleware.interface';
 import { TYPES } from '../constants/types';
 
-const container = new Container();
+export function setupDependencyInjection(): Container {
+  const container = new Container();
 
-container.bind<IUserRepository>(TYPES.UserRepository).to(UserRepository).inSingletonScope();
-container.bind<IAuthUtil>(TYPES.AuthUtil).to(AuthUtil).inSingletonScope();
-container.bind<IAuthService>(TYPES.AuthService).to(AuthService);
-container.bind<IAuthController>(TYPES.AuthController).to(AuthController);
-container.bind<IAuthMiddleware>(TYPES.AuthMiddleware).to(AuthMiddleware);
+  // Bind repositories
+  container.bind<IUserRepository>(TYPES.UserRepository).to(UserRepository).inSingletonScope();
 
-export { container };
+  // Bind utilities
+  container.bind<IAuthUtil>(TYPES.AuthUtil).to(AuthUtil).inSingletonScope();
+
+  // Bind services
+  container.bind<IAuthService>(TYPES.AuthService).to(AuthService);
+
+  // Bind controllers
+  container.bind<IAuthController>(TYPES.AuthController).to(AuthController);
+
+  // Bind middleware
+  container.bind<IAuthMiddleware>(TYPES.AuthMiddleware).to(AuthMiddleware);
+
+  return container;
+}
+
+// Export container instance for backward compatibility
+export const container = setupDependencyInjection();
