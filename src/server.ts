@@ -1,24 +1,20 @@
 import 'reflect-metadata';
 import express from 'express';
 import cors from 'cors';
-import { Container } from 'inversify';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import config from './config/environment';
 import logger from './utils/logger';
 import { setupDependencyInjection } from './config/inversify.config';
-import { TYPES } from './constants/types';
-import { IAuthController } from './interfaces/auth-controller.interface';
-import { IAuthMiddleware } from './interfaces/auth-middleware.interface';
 import { errorHandler } from './middleware/error.middleware';
+import { authRoutes } from './routes/auth.routes';
 
 class Server {
   private app: express.Application;
-  private container: Container;
 
   constructor() {
     this.app = express();
-    this.container = setupDependencyInjection();
+    setupDependencyInjection();
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
@@ -111,36 +107,8 @@ class Server {
       });
     });
 
-    // Get controller instances from DI container
-    const authController = this.container.get<IAuthController>(TYPES.AuthController);
-    const authMiddleware = this.container.get<IAuthMiddleware>(TYPES.AuthMiddleware);
-
-    // Authentication routes
-    const authRouter = express.Router();
-    authRouter.post('/register', (req, res) => authController.createUser(req, res));
-    authRouter.post('/login', (req, res) => authController.loginUser(req, res));
-    authRouter.get(
-      '/profile',
-      (req, res, next) => authMiddleware.authenticate(req, res, next),
-      (req, res) => {
-        res.json({
-          success: true,
-          data: {
-            user: req.user,
-            message: 'Access granted to protected endpoint',
-          },
-          meta: {
-            timestamp: new Date().toISOString(),
-            requestId: Array.isArray(req.headers['x-request-id'])
-              ? req.headers['x-request-id'][0]
-              : req.headers['x-request-id'] || 'unknown',
-            version: '1.0.0',
-          },
-        });
-      }
-    );
-
-    this.app.use('/api/auth', authRouter);
+    // Use auth routes
+    this.app.use('/api/auth', authRoutes);
 
     // Catch-all route for 404
     this.app.use((_req, res) => {
