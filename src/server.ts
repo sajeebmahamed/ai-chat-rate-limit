@@ -5,6 +5,7 @@ import config from './config/environment';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import logger from './utils/logger';
+
 class Server {
   private app: express.Application;
 
@@ -83,22 +84,22 @@ class Server {
       });
     });
 
-    // Catch-all route for 404s
-    // this.app.all('*', (req, res) => {
-    //   res.status(404).json({
-    //     success: false,
-    //     error: 'Endpoint not found',
-    //     meta: {
-    //       timestamp: new Date().toISOString(),
-    //       requestId: 'unknown',
-    //       version: '1.0.0',
-    //     },
-    //   });
-    // });
+    // Catch-all route for 404
+    this.app.use((req, res) => {
+      res.status(404).json({
+        success: false,
+        error: 'Endpoint not found',
+        meta: {
+          timestamp: new Date().toISOString(),
+          requestId: 'unknown',
+          version: '1.0.0',
+        },
+      });
+    });
   }
   private setupErrorHandling(): void {}
 
-  public async start(): Promise<void> {
+  public start(): void {
     try {
       // Start HTTP server
       this.app.listen(config.port, () => {
