@@ -5,6 +5,7 @@ import config from './config/environment';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import logger from './utils/logger';
+import { authRoutes } from './routes/auth.routes';
 
 class Server {
   private app: express.Application;
@@ -69,14 +70,14 @@ class Server {
       this.app.use(
         morgan('combined', {
           stream: { write: (message: string) => logger.info(message.trim()) },
-          skip: (req, res) => res.statusCode < 400, // Only log errors in production
+          skip: (_req, res) => res.statusCode < 400, // Only log errors in production
         })
       );
     }
   }
   private setupRoutes(): void {
     // Root endpoint
-    this.app.get('/', (req, res) => {
+    this.app.get('/', (_req, res) => {
       res.json({
         success: true,
         message: 'AI Chat Rate Limiter API',
@@ -84,8 +85,11 @@ class Server {
       });
     });
 
+    // Auth routes
+    this.app.use('/api/auth', authRoutes);
+
     // Catch-all route for 404
-    this.app.use((req, res) => {
+    this.app.use((_req, res) => {
       res.status(404).json({
         success: false,
         error: 'Endpoint not found',

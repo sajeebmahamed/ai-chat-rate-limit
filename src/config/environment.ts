@@ -14,6 +14,9 @@ const envSchema = Joi.object({
   CORS_ORIGIN: Joi.string().default('*'),
   MAX_REQUEST_SIZE: Joi.string().default('10mb'),
   ENABLE_HELMET: Joi.boolean().default(true),
+  JWT_SECRET: Joi.string().default('your-secret-key-change-in-production'),
+  JWT_EXPIRES_IN: Joi.string().default('7d'),
+  BCRYPT_SALT_ROUNDS: Joi.number().default(12),
 }).unknown();
 
 // Validate env variables
@@ -28,6 +31,9 @@ const { error, value: envVars } = envSchema.validate(process.env) as {
     CORS_ORIGIN: string;
     MAX_REQUEST_SIZE: string;
     ENABLE_HELMET: boolean;
+    JWT_SECRET: string;
+    JWT_EXPIRES_IN: string;
+    BCRYPT_SALT_ROUNDS: number;
   };
 };
 
@@ -52,6 +58,11 @@ export interface EnvironmentConfig {
     maxRequestSize: string;
     enableHelmet: boolean;
   };
+  auth: {
+    jwtSecret: string;
+    jwtExpiresIn: string;
+    bcryptSaltRounds: number;
+  };
 }
 
 const config: EnvironmentConfig = {
@@ -70,6 +81,11 @@ const config: EnvironmentConfig = {
   security: {
     maxRequestSize: envVars.MAX_REQUEST_SIZE,
     enableHelmet: envVars.ENABLE_HELMET,
+  },
+  auth: {
+    jwtSecret: envVars.JWT_SECRET,
+    jwtExpiresIn: envVars.JWT_EXPIRES_IN,
+    bcryptSaltRounds: envVars.BCRYPT_SALT_ROUNDS,
   },
 };
 
