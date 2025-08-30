@@ -10,6 +10,7 @@ import { setupDependencyInjection } from './config/inversify.config';
 import { TYPES } from './constants/types';
 import { IAuthController } from './interfaces/auth-controller.interface';
 import { IAuthMiddleware } from './interfaces/auth-middleware.interface';
+import { errorHandler } from './middleware/error.middleware';
 
 class Server {
   private app: express.Application;
@@ -154,7 +155,9 @@ class Server {
       });
     });
   }
-  private setupErrorHandling(): void {}
+  private setupErrorHandling(): void {
+    this.app.use(errorHandler);
+  }
 
   public start(): void {
     try {
