@@ -17,6 +17,7 @@ const envSchema = Joi.object({
   JWT_SECRET: Joi.string().default('your-secret-key-change-in-production'),
   JWT_EXPIRES_IN: Joi.string().default('7d'),
   BCRYPT_SALT_ROUNDS: Joi.number().default(12),
+  OPENAI_API_KEY: Joi.string().required(),
 }).unknown();
 
 // Validate env variables
@@ -34,6 +35,7 @@ const { error, value: envVars } = envSchema.validate(process.env) as {
     JWT_SECRET: string;
     JWT_EXPIRES_IN: string;
     BCRYPT_SALT_ROUNDS: number;
+    OPENAI_API_KEY: string;
   };
 };
 
@@ -63,6 +65,9 @@ export interface EnvironmentConfig {
     jwtExpiresIn: string;
     bcryptSaltRounds: number;
   };
+  openai: {
+    apiKey: string;
+  };
 }
 
 const config: EnvironmentConfig = {
@@ -86,6 +91,9 @@ const config: EnvironmentConfig = {
     jwtSecret: envVars.JWT_SECRET,
     jwtExpiresIn: envVars.JWT_EXPIRES_IN,
     bcryptSaltRounds: envVars.BCRYPT_SALT_ROUNDS,
+  },
+  openai: {
+    apiKey: envVars.OPENAI_API_KEY,
   },
 };
 

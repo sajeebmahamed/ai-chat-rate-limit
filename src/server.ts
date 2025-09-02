@@ -8,6 +8,7 @@ import logger from './utils/logger';
 import { setupDependencyInjection } from './config/inversify.config';
 import { errorHandler } from './middleware/error.middleware';
 import { authRoutes } from './routes/auth.routes';
+import { chatRoutes } from './routes/chat.routes';
 
 class Server {
   private app: express.Application;
@@ -109,6 +110,9 @@ class Server {
 
     // Use auth routes
     this.app.use('/api/auth', authRoutes);
+
+    // Use chat routes
+    this.app.use('/api', chatRoutes);
 
     // Catch-all route for 404
     this.app.use((_req, res) => {
