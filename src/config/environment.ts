@@ -10,9 +10,9 @@ const envSchema = Joi.object({
   PORT: Joi.number().default(3000),
   LOG_LEVEL: Joi.string().valid('error', 'warn', 'info', 'debug').default('info'),
   RATE_LIMIT_WINDOW_MS: Joi.number().default(3600000), // 1 hour in ms
-  RATE_LIMIT_GUEST_LIMIT: Joi.number().default(1), // 3
-  RATE_LIMIT_FREE_LIMIT: Joi.number().default(2), // 10
-  RATE_LIMIT_PREMIUM_LIMIT: Joi.number().default(3), // 50
+  RATE_LIMIT_GUEST_LIMIT: Joi.number().default(3),
+  RATE_LIMIT_FREE_LIMIT: Joi.number().default(10),
+  RATE_LIMIT_PREMIUM_LIMIT: Joi.number().default(50),
   RATE_LIMIT_CLEANUP_INTERVAL_MS: Joi.number().default(900000), // 15 minutes
   ENABLE_CORS: Joi.boolean().default(true),
   CORS_ORIGIN: Joi.string().default('*'),
