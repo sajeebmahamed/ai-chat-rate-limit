@@ -25,8 +25,11 @@ export class PermissiveAuthMiddleware {
       }
 
       try {
-        const decoded = jwt.verify(token, config.auth.jwtSecret) as { userId: string };
-        const user = await this.userRepository.findById(decoded.userId);
+        // const decoded = jwt.verify(token, config.auth.jwtSecret) as { userId: string };
+        // const user = await this.userRepository.findById(decoded.userId);
+
+        const decoded = jwt.verify(token, config.auth.jwtSecret) as { id: string };
+        const user = await this.userRepository.findById(decoded.id);
 
         if (user) {
           req.user = {
