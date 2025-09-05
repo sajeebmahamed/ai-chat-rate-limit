@@ -97,9 +97,7 @@ POST /chat - Send message to AI (rate limited)
 **Test 1: Guest user within limit (should succeed)**
 ```bash
 # First request - should succeed
-curl -X POST http://localhost:3000/api/chat
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello, this is my first request"}'
+curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -d "{\"message\": \"Hello, this is my first request\"}"
 
 # Response: 200 OK with AI response
 ```
@@ -109,9 +107,7 @@ curl -X POST http://localhost:3000/api/chat
 # Make 4 requests quickly (guest limit is 3 per hour)
 for i in {1..4}; do
   echo "Request $i:"
-  curl -X POST http://localhost:3000/api/chat
-    -H "Content-Type: application/json" \
-    -d "{\"message\": \"Hello, this is request $i\"}"
+  curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -d "{\"message\": \"Hello, this is request $i\"}"
   echo -e "\n---"
 done
 
@@ -147,10 +143,7 @@ echo "JWT Token: $JWT_TOKEN"
 # Make 5 requests (free limit is 10 per hour)
 for i in {1..5}; do
   echo "Free user request $i:"
-  curl -X POST http://localhost:3000/api/chat
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $JWT_TOKEN" \
-    -d "{\"message\": \"Free user request $i\"}"
+  curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d "{\"message\": \"Free user request $i\"}"
   echo -e "\n---"
 done
 
@@ -162,10 +155,7 @@ done
 # Make 11 requests (free limit is 10 per hour)
 for i in {1..11}; do
   echo "Free user request $i:"
-  curl -X POST http://localhost:3000/api/chat
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $JWT_TOKEN" \
-    -d "{\"message\": \"Free user request $i\"}"
+  curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d "{\"message\": \"Free user request $i\"}"
   echo -e "\n---"
 done
 
@@ -201,10 +191,7 @@ echo "Premium JWT Token: $PREMIUM_TOKEN"
 # Make 25 requests (premium limit is 50 per hour)
 for i in {1..25}; do
   echo "Premium user request $i:"
-  curl -X POST http://localhost:3000/api/chat
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $PREMIUM_TOKEN" \
-    -d "{\"message\": \"Premium user request $i\"}"
+  curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -H "Authorization: Bearer $PREMIUM_TOKEN" -d "{\"message\": \"Premium user request $i\"}"
   echo -e "\n---"
 done
 
@@ -216,10 +203,7 @@ done
 # Make 51 requests (premium limit is 50 per hour)
 for i in {1..51}; do
   echo "Premium user request $i:"
-  curl -X POST http://localhost:3000/api/chat
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $PREMIUM_TOKEN" \
-    -d "{\"message\": \"Premium user request $i\"}"
+  curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -H "Authorization: Bearer $PREMIUM_TOKEN" -d "{\"message\": \"Premium user request $i\"}"
   echo -e "\n---"
 done
 
@@ -248,10 +232,7 @@ Rate limits reset at the beginning of each hour. To test reset behavior:
 
 ```bash
 # Check current rate limit status
-curl -X POST http://localhost:3000/api/chat
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $JWT_TOKEN" \
-  -d '{"message": "Check remaining requests"}'
+curl -X POST http://localhost:3000/api/chat -H "Content-Type: application/json" -H "Authorization: Bearer $JWT_TOKEN" -d "{\"message\": \"Check remaining requests\"}"
 
 # Wait for next hour boundary or restart server to clear windows
 # Then test that limits are reset

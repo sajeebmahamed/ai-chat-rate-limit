@@ -4,6 +4,7 @@ import { IRateLimitMiddleware } from '../interfaces/rate-limit-middleware.interf
 import { IRateLimiterService } from '../interfaces/rate-limiter-service.interface';
 import { UserType } from '../types/user.type';
 import { TYPES } from '../constants/types';
+import { formatRemainingTime } from '../utils/time-format.util';
 
 @injectable()
 export class RateLimitMiddleware implements IRateLimitMiddleware {
@@ -24,9 +25,13 @@ export class RateLimitMiddleware implements IRateLimitMiddleware {
         res.setHeader('Retry-After', rateLimitResult.retryAfter.toString());
       }
 
+      const timeUntilReset = Math.max(0, (rateLimitResult.resetTime - Date.now()) / 1000);
+      const formattedTime = formatRemainingTime(timeUntilReset);
+      const userTypeDisplay = userType.toLowerCase();
+
       res.status(429).json({
         success: false,
-        error: `Rate limit exceeded. ${userType} users can make ${rateLimitResult.limit} AI requests per hour.`,
+        error: `Rate limit exceeded for ${userTypeDisplay} users. Try again in ${formattedTime}.`,
         details: {
           limit: rateLimitResult.limit,
           remaining: rateLimitResult.remaining,
