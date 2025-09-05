@@ -1,52 +1,59 @@
 import { Request, Response, NextFunction } from 'express';
-import { injectable } from 'inversify';
+import { injectable, inject } from 'inversify';
 import { IRateLimitMiddleware } from '../interfaces/rate-limit-middleware.interface';
-
-interface RateLimitData {
-  count: number;
-  startTime: number;
-}
+import { IRateLimiterService } from '../interfaces/rate-limiter-service.interface';
+import { UserType } from '../types/user.type';
+import { TYPES } from '../constants/types';
 
 @injectable()
 export class RateLimitMiddleware implements IRateLimitMiddleware {
-  private rateLimitWindows = 60 * 1000; // 1 minute
-  private maxRequestPerWindow = 5;
-  private ipRequests: Record<string, RateLimitData> = {};
+  constructor(@inject(TYPES.RateLimiterService) private rateLimiterService: IRateLimiterService) {}
 
   public checkRateLimit = (req: Request, res: Response, next: NextFunction): void => {
-    const ip = req.socket.remoteAddress || req.ip || 'unknown';
-    const currentTime = Date.now();
+    const identifier = this.getIdentifier(req);
+    const userType = this.getUserType(req);
 
-    if (!this.ipRequests[ip]) {
-      this.ipRequests[ip] = {
-        count: 1,
-        startTime: currentTime,
-      };
-    } else {
-      const timePassed = currentTime - this.ipRequests[ip].startTime;
-      if (timePassed < this.rateLimitWindows) {
-        this.ipRequests[ip].count++;
-      } else {
-        this.ipRequests[ip].count = 1;
-        this.ipRequests[ip].startTime = currentTime;
+    const rateLimitResult = this.rateLimiterService.checkRateLimit(identifier, userType);
+
+    res.setHeader('X-RateLimit-Limit', rateLimitResult.limit.toString());
+    res.setHeader('X-RateLimit-Remaining', rateLimitResult.remaining.toString());
+    res.setHeader('X-RateLimit-Reset', new Date(rateLimitResult.resetTime).toISOString());
+
+    if (!rateLimitResult.allowed) {
+      if (rateLimitResult.retryAfter) {
+        res.setHeader('Retry-After', rateLimitResult.retryAfter.toString());
       }
-    }
 
-    if (this.ipRequests[ip].count > this.maxRequestPerWindow) {
       res.status(429).json({
         success: false,
-        error: 'Too many requests. Try again later',
+        error: `Rate limit exceeded. ${userType} users can make ${rateLimitResult.limit} AI requests per hour.`,
+        details: {
+          limit: rateLimitResult.limit,
+          remaining: rateLimitResult.remaining,
+          resetTime: new Date(rateLimitResult.resetTime).toISOString(),
+          retryAfter: rateLimitResult.retryAfter,
+          userType,
+        },
         meta: {
           timestamp: new Date().toISOString(),
           requestId: req.headers['x-request-id'] || 'unknown',
           version: '1.0.0',
-          rateLimitReset: new Date(
-            this.ipRequests[ip].startTime + this.rateLimitWindows
-          ).toISOString(),
         },
       });
       return;
     }
+
     next();
   };
+
+  private getIdentifier(req: Request): string {
+    if (req.user?.id) {
+      return `user:${req.user.id}`;
+    }
+    return `ip:${req.socket.remoteAddress || req.ip || 'unknown'}`;
+  }
+
+  private getUserType(req: Request): UserType {
+    return req.user?.type || UserType.GUEST;
+  }
 }

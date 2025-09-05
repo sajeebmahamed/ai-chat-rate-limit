@@ -9,13 +9,18 @@ import { setupDependencyInjection } from './config/inversify.config';
 import { errorHandler } from './middleware/error.middleware';
 import { authRoutes } from './routes/auth.routes';
 import { chatRoutes } from './routes/chat.routes';
+import { TYPES } from './constants/types';
+import { ICleanupService } from './interfaces/cleanup-service.interface';
 
 class Server {
   private app: express.Application;
+  private container: import('inversify').Container;
+  private cleanupService: ICleanupService;
 
   constructor() {
     this.app = express();
-    setupDependencyInjection();
+    this.container = setupDependencyInjection();
+    this.cleanupService = this.container.get<ICleanupService>(TYPES.CleanupService);
     this.setupMiddleware();
     this.setupRoutes();
     this.setupErrorHandling();
@@ -140,11 +145,17 @@ class Server {
           corsEnabled: config.cors.enabled,
           helmetEnabled: config.security.enableHelmet,
         });
+
+        // Start cleanup service
+        this.cleanupService.startCleanup();
       });
 
       // Graceful shutdown handling
       const gracefulShutdown = async (signal: string) => {
         logger.info(`Received ${signal}, shutting down gracefully`);
+
+        // Stop cleanup service
+        this.cleanupService.stopCleanup();
 
         server.close(() => {
           logger.info('Server shutdown completed');

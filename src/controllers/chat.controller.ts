@@ -2,13 +2,13 @@ import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
 import { chatRequestSchema } from '../validators/chat.validator';
 import { ChatRequestDto } from '../types/chat.type';
-import { IChatService } from '../interfaces/chat-service.interface';
+import { IAIService } from '../interfaces/ai-service.interface';
 import { IChatController } from '../interfaces/chat-controller.interface';
 import { TYPES } from '../constants/types';
 
 @injectable()
 export class ChatController implements IChatController {
-  constructor(@inject(TYPES.ChatService) private chatService: IChatService) {}
+  constructor(@inject(TYPES.AIService) private aiService: IAIService) {}
 
   public sendMessage = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -29,7 +29,7 @@ export class ChatController implements IChatController {
       }
 
       const chatRequestDto: ChatRequestDto = validationResult.value;
-      const result = await this.chatService.processMessage(chatRequestDto);
+      const result = await this.aiService.processMessage(chatRequestDto);
 
       res.status(200).json({
         success: true,
