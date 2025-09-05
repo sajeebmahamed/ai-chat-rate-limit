@@ -1,10 +1,18 @@
 import { injectable } from 'inversify';
 import bcrypt from 'bcryptjs';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import config from '../config/environment';
 import { AuthenticatedUser, UserType } from '../types/user.type';
 import { IAuthUtil } from '../interfaces/auth-util.interface';
+
+export interface DecodedToken {
+  id: string;
+  email: string;
+  type: UserType;
+  iat: number;
+  exp: number;
+}
 
 @injectable()
 export class AuthUtil implements IAuthUtil {
@@ -33,20 +41,58 @@ export class AuthUtil implements IAuthUtil {
   }
 
   public verifyJwtToken(token: string): AuthenticatedUser {
-    const decoded = jwt.verify(token, config.auth.jwtSecret) as JwtPayload & {
-      id: string;
-      email: string;
-      type: UserType;
-    };
+    try {
+      const decoded = jwt.verify(token, config.auth.jwtSecret) as DecodedToken;
 
-    if (!decoded.id || !decoded.email || !decoded.type) {
-      throw new Error('Invalid token payload');
+      if (!decoded.id || !decoded.email || !decoded.type) {
+        throw new Error('Invalid token payload');
+      }
+
+      return {
+        id: decoded.id,
+        email: decoded.email,
+        type: decoded.type,
+      };
+    } catch (error) {
+      throw new Error(
+        `Token verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  public extractTokenFromHeader(authHeader?: string): string | null {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
     }
 
-    return {
-      id: decoded.id,
-      email: decoded.email,
-      type: decoded.type,
-    };
+    const token = authHeader.split(' ')[1];
+    return token || null;
+  }
+
+  public isTokenExpired(decoded: DecodedToken): boolean {
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp <= currentTime;
+  }
+
+  public getUserFromToken(token: string): AuthenticatedUser | null {
+    try {
+      const decoded = jwt.verify(token, config.auth.jwtSecret) as DecodedToken;
+
+      if (!decoded.id || !decoded.email || !decoded.type) {
+        return null;
+      }
+
+      if (this.isTokenExpired(decoded)) {
+        return null;
+      }
+
+      return {
+        id: decoded.id,
+        email: decoded.email,
+        type: decoded.type,
+      };
+    } catch {
+      return null;
+    }
   }
 }

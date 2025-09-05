@@ -1,12 +1,13 @@
 import { injectable, inject } from 'inversify';
 import { IRateLimiterService } from '../interfaces/rate-limiter-service.interface';
 import { TYPES } from '../constants/types';
+import config from '../config/environment';
 import logger from '../utils/logger';
 
 @injectable()
 export class CleanupService {
   private cleanupInterval: NodeJS.Timeout | null = null;
-  private readonly cleanupIntervalMs = 15 * 60 * 1000; // 15 minutes
+  private readonly cleanupIntervalMs = config.rateLimit.cleanupIntervalMs;
 
   constructor(@inject(TYPES.RateLimiterService) private rateLimiterService: IRateLimiterService) {}
 

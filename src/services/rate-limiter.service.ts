@@ -1,5 +1,6 @@
 import { injectable } from 'inversify';
 import { UserType } from '../types/user.type';
+import config from '../config/environment';
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -17,12 +18,12 @@ interface WindowData {
 @injectable()
 export class RateLimiterService {
   private readonly rateLimitConfig = {
-    [UserType.GUEST]: 3,
-    [UserType.FREE]: 10,
-    [UserType.PREMIUM]: 50,
+    [UserType.GUEST]: config.rateLimit.limits.guest,
+    [UserType.FREE]: config.rateLimit.limits.free,
+    [UserType.PREMIUM]: config.rateLimit.limits.premium,
   };
 
-  private readonly windowDurationMs = 60 * 60 * 1000; // 1 hour in milliseconds
+  private readonly windowDurationMs = config.rateLimit.windowMs;
   private readonly rateLimitStore: Map<string, WindowData> = new Map();
 
   public checkRateLimit(identifier: string, userType: UserType): RateLimitResult {

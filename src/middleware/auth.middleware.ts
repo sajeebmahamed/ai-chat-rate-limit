@@ -28,7 +28,7 @@ export class AuthMiddleware implements IAuthMiddleware {
         return;
       }
 
-      const token = authHeader.split(' ')[1];
+      const token = this.authUtil.extractTokenFromHeader(authHeader);
 
       if (!token) {
         res.status(401).json({
